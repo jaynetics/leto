@@ -1,7 +1,7 @@
 # Leto
 
 [![Gem Version](https://badge.fury.io/rb/leto.svg)](http://badge.fury.io/rb/leto)
-[![Build Status](https://github.com/jaynetics/leto/workflows/tests/badge.svg)](https://github.com/jaynetics/leto/actions)
+[![Build Status](https://github.com/jaynetics/leto/actions/workflows/tests.yml/badge.svg)](https://github.com/jaynetics/leto/actions)
 
 A generic object traverser for Ruby (named after the Greek [childbearing goddess Leto](https://www.theoi.com/Titan/TitanisLeto.html)).
 
@@ -79,7 +79,7 @@ Leto.dig(object, [[:[], 0], [:[], :a], [:[], 1], [:end]]) # => "d"
 - [`Leto.deep_eql?(obj1, obj2)`](https://github.com/search?q=deep_eql+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - stricter version of `#eql?` that takes all ivars into consideration
 - [`Leto.deep_dup(obj)`](https://github.com/search?q=deep_dup+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
-  - more thorough than `active_support` or `deep_dup` gems, e.g. dups ivars
+  - more thorough than [`active_support`](https://www.rubydoc.info/search/gems/activesupport?q=deep_dup) or [`deep_dup`](https://github.com/ollie/deep_dup) gems, e.g. dups ivars
 - [`Leto.shared_mutable_state?(obj1, obj2)`](https://github.com/search?q=shared_mutable_state+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - useful for debugging or verifying that a `#dup` implementation is sane
 - [`Leto.shared_mutables(obj1, obj2)`](https://github.com/search?q=shared_mutables+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
