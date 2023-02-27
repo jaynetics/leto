@@ -8,7 +8,7 @@ module Leto
   end
 
   def self.deep_print(obj, print_method: :inspect, indent: 4, show_path: true)
-    call(obj) do |el, path|
+    trace(obj) do |el, path|
       puts "#{' ' * path.count * indent}#{el.send(print_method)}" \
            "#{"  @ #{path.inspect}" if show_path}" \
            [0..78]
@@ -24,8 +24,7 @@ module Leto
     return obj if IMMUTABLE_CLASSES.include?(obj.class) || !duplicable?(obj) ||
                   (!include_modules && obj.is_a?(Module))
 
-    copy = obj.dup
-    call(obj, max_depth: 1).each do |el, path|
+    trace(obj, max_depth: 1).each_with_object(obj.dup) do |(el, path), copy|
       method, *args = path.steps[0]
       case method
       when :instance_variable_get
@@ -36,7 +35,6 @@ module Leto
         return Range.new(deep_dup(obj.begin), deep_dup(obj.end), obj.exclude_end?)
       end
     end
-    copy
   end
 
   def self.shared_mutable_state?(obj1, obj2)
@@ -56,12 +54,11 @@ module Leto
   end
 
   def self.shared_objects(obj1, obj2, filter: nil)
-    objects_with_path1 = call(obj1).map { |el, path| [el, path] }
-    objects_with_path2 = call(obj2).map { |el, path| [el, path] }
-    objects_with_path1.each.with_object([]) do |(el1, path1), acc|
+    obj2_els_with_path = trace(obj2).to_a
+    trace(obj1).each_with_object([]) do |(el1, path1), acc|
       next if filter && !filter.call(el1)
 
-      objects_with_path2.reject do |el2, path2|
+      obj2_els_with_path.reject do |el2, path2|
         acc << [el1, path1, path2] if el1.equal?(el2)
       end
     end
@@ -75,7 +72,11 @@ module Leto
   IMMUTABLE_CLASSES = [
     FalseClass,
     Float,
-    Integer,
+    if defined?(Integer)
+      Integer
+    else
+      Fixnum # rubocop:disable Lint/UnifiedInteger for Ruby < 2.4
+    end,
     NilClass,
     Symbol,
     TrueClass,

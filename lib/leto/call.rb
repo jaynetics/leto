@@ -1,14 +1,15 @@
 module Leto
-  LEAKY_PROCESS_TMS = RUBY_VERSION.to_f <= 2.7
+  def self.call(obj, max_depth: nil, path: nil, &block)
+    block_given? or return enum_for(__method__, obj, max_depth: max_depth, path: path)
 
-  def self.call(obj, max_depth: nil, &block)
-    block_given? or return enum_for(__method__, obj, max_depth: max_depth)
-
-    seen = {}.tap(&:compare_by_identity)
-    seen[Process::Tms] = true if LEAKY_PROCESS_TMS
-    path = block.arity == 2 ? Path.new(start: obj) : nil
-    traverse(obj, path, 0, max_depth, seen, block)
+    traverse(obj, path, 0, max_depth, build_seen_hash, block)
     obj
+  end
+
+  def self.trace(obj, max_depth: nil, path: nil, &block)
+    block_given? or return enum_for(__method__, obj, max_depth: max_depth, path: path)
+
+    call(obj, max_depth: max_depth, path: path || Path.new(start: obj), &block)
   end
 
   def self.traverse(obj, path, depth, max_depth, seen, block)
@@ -62,4 +63,19 @@ module Leto
     end
   end
   private_class_method :traverse
+
+  if RUBY_VERSION.to_f > 2.7
+    def self.build_seen_hash
+      {}.tap(&:compare_by_identity)
+    end
+  else
+    # ignore leaky constants in old rubies
+    def self.build_seen_hash
+      hash = {}.tap(&:compare_by_identity)
+      hash[::Etc::Group] = true if defined?(::Etc::Group)
+      hash[::Etc::Passwd] = true if defined?(::Etc::Passwd)
+      hash[::Process::Tms] = true if defined?(::Process::Tms)
+      hash
+    end
+  end
 end

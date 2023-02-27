@@ -9,6 +9,8 @@ gem "rake", "~> 13.0"
 
 gem "rspec", "~> 3.0"
 
-gem "rubocop", "~> 1.21"
+if RUBY_VERSION.to_f >= 3.0
+  gem "rubocop", "~> 1.21"
 
-gem "relaxed-rubocop"
+  gem "relaxed-rubocop"
+end

@@ -1,8 +1,7 @@
 RSpec.describe Leto::Path do
   describe '#resolve' do
     it 'returns the sub-object at the given path' do
-      results = Leto.call(deep_object).map { |obj, path| [obj, path] }
-      obj, path = results.last
+      obj, path = Leto.trace(deep_object).to_a.last
       expect(obj).to eq 'z'
       expect(path).to be_a Leto::Path
       expect(path.resolve).to equal obj

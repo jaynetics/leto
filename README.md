@@ -50,8 +50,8 @@ Leto.call(object) { |el| p el }
 Leto.call(object).to_a
 # => [[{:a=>["b", ["c".."d"]]}], {:a=>["b", ["c".."d"]]}, :a, ...]
 
-# all (sub-)objects have a path:
-Leto.call(object) { |el, path| puts "#{el.inspect.ljust(23)} @#{path}" }
+# Leto::trace behaves like ::call, but also yields each (sub-)object's path:
+Leto.trace(object) { |el, path| puts "#{el.inspect.ljust(23)} @#{path}" }
 # prints:
 #
 # [{:a=>["b", "c".."d"]}] @#<Leto::Path [{:a=>["b", "c".."d"]}]>
@@ -64,7 +64,7 @@ Leto.call(object) { |el, path| puts "#{el.inspect.ljust(23)} @#{path}" }
 # "d"                     @#<Leto::Path [{:a=>["b", "c".."d"]}][0][:a][1].end>
 
 # paths can be looked up with Leto::Path#resolve or Leto::dig
-path = Leto.call(object).map { |_el, path| path }.last # => #<Leto::Path...>
+path = Leto.trace(object).map { |_el, path| path }.last # => #<Leto::Path...>
 path.resolve # => "d"
 Leto.dig(object, path) # => "d"
 Leto.dig(object, [[:[], 0], [:[], :a], [:[], 1], [:end]]) # => "d"
@@ -72,19 +72,19 @@ Leto.dig(object, [[:[], 0], [:[], :a], [:[], 1], [:end]]) # => "d"
 
 ### Included utility methods
 
-- `Leto.deep_freeze(obj)`
+- [`Leto.deep_freeze(obj)`](https://github.com/search?q=deep_freeze+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - similar to the version above, but avoids freezing Modules and unfreezables
-- `Leto.deep_print(obj)`
+- [`Leto.deep_print(obj)`](https://github.com/search?q=deep_print+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - for debugging - prints more information than `pretty_print` does by default
-- `Leto.deep_eql?(obj1, obj2)`
+- [`Leto.deep_eql?(obj1, obj2)`](https://github.com/search?q=deep_eql+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - stricter version of `#eql?` that takes all ivars into consideration
-- `Leto.deep_dup(obj)`
+- [`Leto.deep_dup(obj)`](https://github.com/search?q=deep_dup+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - more thorough than `active_support` or `deep_dup` gems, e.g. dups ivars
-- `Leto.shared_mutable_state?(obj1, obj2)`
+- [`Leto.shared_mutable_state?(obj1, obj2)`](https://github.com/search?q=shared_mutable_state+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - useful for debugging or verifying that a `#dup` implementation is sane
-- `Leto.shared_mutables(obj1, obj2)`
+- [`Leto.shared_mutables(obj1, obj2)`](https://github.com/search?q=shared_mutables+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - useful for debugging or verifying that a `#dup` implementation is sane
-- `Leto.shared_objects(obj1, obj2)`
+- [`Leto.shared_objects(obj1, obj2)`](https://github.com/search?q=shared_objects+repo%3Ajaynetics%2Fleto+path%3Alib%2Fleto%2Futils.rb&type=code)
   - returns all objects shared by `obj1` and `obj2`, whether mutable or not
 
 ## Benchmarks
