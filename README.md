@@ -78,6 +78,8 @@ Leto.dig(object, [[:[], 0], [:[], :a], [:[], 1], [:end]]) # => "d"
   - for debugging - prints more information than `pretty_print` does by default
 - `Leto.deep_eql?(obj1, obj2)`
   - stricter version of `#eql?` that takes all ivars into consideration
+- `Leto.deep_dup(obj)`
+  - more thorough than `active_support` or `deep_dup` gems, e.g. dups ivars
 - `Leto.shared_mutable_state?(obj1, obj2)`
   - useful for debugging or verifying that a `#dup` implementation is sane
 - `Leto.shared_mutables(obj1, obj2)`

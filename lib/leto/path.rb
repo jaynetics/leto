@@ -14,6 +14,11 @@ module Leto
       steps.each(&block)
     end
 
+    def size
+      steps.size
+    end
+    alias count size
+
     def +(other)
       self.class.new(start: start, steps: steps + other.to_a)
     end
@@ -21,8 +26,6 @@ module Leto
     def resolve
       steps.inject(start) do |obj, (method, *args)|
         obj&.send(method, *args) or break obj
-      rescue StandardError => e
-        warn "#{__method__}: #{e.class} #{e.message}"
       end
     end
 

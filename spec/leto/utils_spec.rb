@@ -28,6 +28,40 @@ RSpec.describe Leto do
     expect(Leto.deep_eql?(obj1, obj2)).to eq false
   end
 
+  specify '::deep_dup' do
+    klass = Struct.new(:foo) { attr_accessor(:bar) }
+    orig = klass.new(['foo', { bar: ['baz', 'BEG'..'END'] }])
+    orig.bar = 'qux'
+    orig_cv = ['x', 'y', 'z']
+    klass.class_variable_set(:@@cv, orig_cv) # rubocop:disable Style/ClassVars
+
+    copy = Leto.deep_dup(orig)
+
+    expect(copy.class).to equal klass
+    expect(klass.class_variable_get(:@@cv)).to equal orig_cv
+
+    expect_dup = ->(proc) do
+      expect(proc.call(copy)).to eq(proc.call(orig))
+      expect(proc.call(copy)).not_to equal(proc.call(orig))
+    end
+
+    expect_dup.call(->(orig_or_copy) { orig_or_copy })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[0] })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1] })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0] })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][0] })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1] })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1].begin })
+    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1].end })
+
+    recursive = []
+    recursive << recursive
+    copy = Leto.deep_dup(recursive)
+    expect(copy).to eq recursive
+    expect(copy).not_to equal recursive
+  end
+
   specify '::shared_mutable_state?' do
     obj1 = struct_class.new(:foobar)
     obj2 = struct_class.new(:foobar)

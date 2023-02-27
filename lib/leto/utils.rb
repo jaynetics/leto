@@ -20,6 +20,25 @@ module Leto
     call(obj1).to_a == call(obj2).to_a
   end
 
+  def self.deep_dup(obj, include_modules: false)
+    return obj if IMMUTABLE_CLASSES.include?(obj.class) || !duplicable?(obj) ||
+                  (!include_modules && obj.is_a?(Module))
+
+    copy = obj.dup
+    call(obj, max_depth: 1).each do |el, path|
+      method, *args = path.steps[0]
+      case method
+      when :instance_variable_get
+        copy.instance_variable_set(*args, deep_dup(el, include_modules: include_modules))
+      when :[]
+        copy[*args] = deep_dup(el, include_modules: include_modules)
+      when :begin
+        return Range.new(deep_dup(obj.begin), deep_dup(obj.end), obj.exclude_end?)
+      end
+    end
+    copy
+  end
+
   def self.shared_mutable_state?(obj1, obj2)
     shared_mutables(obj1, obj2).any?
   end
@@ -60,5 +79,18 @@ module Leto
     NilClass,
     Symbol,
     TrueClass,
+  ].freeze
+
+  def self.duplicable?(obj)
+    !NON_DUPLICABLE_CLASSES.include?(obj.class) && obj.respond_to?(:dup)
+  end
+  private_class_method :duplicable?
+
+  require 'singleton'
+
+  NON_DUPLICABLE_CLASSES = [
+    Method,
+    Singleton,
+    UnboundMethod
   ].freeze
 end
