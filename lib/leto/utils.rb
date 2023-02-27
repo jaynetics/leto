@@ -38,7 +38,7 @@ module Leto
   end
 
   def self.shared_mutable_state?(obj1, obj2)
-    shared_mutables(obj1, obj2).any?
+    each_shared_object(obj1, obj2, filter: method(:mutable?)).any?
   end
 
   # returns [[shared_object, path1, path2], ...], e.g.:
@@ -50,16 +50,22 @@ module Leto
   #   ["bar", [[:[], 1]], [[:[], 0]]]
   # ]
   def self.shared_mutables(obj1, obj2)
-    shared_objects(obj1, obj2, filter: method(:mutable?))
+    each_shared_object(obj1, obj2, filter: method(:mutable?)).to_a
   end
 
   def self.shared_objects(obj1, obj2, filter: nil)
+    each_shared_object(obj1, obj2, filter: filter).to_a
+  end
+
+  def self.each_shared_object(obj1, obj2, filter: nil)
+    block_given? or return enum_for(__method__, obj1, obj2, filter: filter)
+
     obj2_els_with_path = trace(obj2).to_a
-    trace(obj1).each_with_object([]) do |(el1, path1), acc|
+    trace(obj1).each do |el1, path1|
       next if filter && !filter.call(el1)
 
       obj2_els_with_path.reject do |el2, path2|
-        acc << [el1, path1, path2] if el1.equal?(el2)
+        yield(el1, path1, path2) if el1.equal?(el2)
       end
     end
   end
