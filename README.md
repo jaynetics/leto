@@ -2,6 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/leto.svg)](http://badge.fury.io/rb/leto)
 [![Build Status](https://github.com/jaynetics/leto/actions/workflows/tests.yml/badge.svg)](https://github.com/jaynetics/leto/actions)
+[![Coverage](https://codecov.io/gh/jaynetics/leto/branch/main/graph/badge.svg?token=0993K9I8VC)](https://codecov.io/gh/jaynetics/leto)
 
 A generic object traverser for Ruby (named after the Greek [childbearing goddess Leto](https://www.theoi.com/Titan/TitanisLeto.html)).
 
