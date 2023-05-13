@@ -64,18 +64,15 @@ module Leto
   end
   private_class_method :traverse
 
-  if RUBY_VERSION.to_f > 2.7
+  # ignore leaky constants in old rubies
+  class_eval <<-RUBY, __FILE__, __LINE__ + 1
     def self.build_seen_hash
-      {}.tap(&:compare_by_identity)
-    end
-  else
-    # ignore leaky constants in old rubies
-    def self.build_seen_hash
-      hash = {}.tap(&:compare_by_identity)
-      hash[::Etc::Group] = true if defined?(::Etc::Group)
-      hash[::Etc::Passwd] = true if defined?(::Etc::Passwd)
-      hash[::Process::Tms] = true if defined?(::Process::Tms)
+      hash = {}
+      hash.compare_by_identity
+      #{'hash[::Etc::Group] = true' if defined?(::Etc::Group)}
+      #{'hash[::Etc::Passwd] = true' if defined?(::Etc::Passwd)}
+      #{'hash[::Process::Tms] = true' if defined?(::Process::Tms)}
       hash
     end
-  end
+  RUBY
 end

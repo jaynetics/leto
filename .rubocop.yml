@@ -21,6 +21,9 @@ Lint/AmbiguousBlockAssociation:
 Lint/AmbiguousOperatorPrecedence:
   Enabled: false
 
+Style/DocumentDynamicEvalDefinition:
+  Enabled: false
+
 Style/FetchEnvVar:
   Enabled: false
 
