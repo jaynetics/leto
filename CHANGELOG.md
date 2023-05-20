@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [2.1.0] - 2023-05-20
+
 ### Added
 
 - `::call`, `::trace` and `::deep_dup` support for Data feature of Ruby 3.2
