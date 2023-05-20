@@ -63,7 +63,7 @@ RSpec.describe Leto do
     expect(copy).to eq recursive
     expect(copy).not_to equal recursive
 
-    if defined?(Data)
+    if defined?(Data) && Data.respond_to?(:define)
       model = Data.define(:foo, :bar)
       record_orig = model.new('bazz', ['qux'])
       record_copy = Leto.deep_dup(record_orig)
