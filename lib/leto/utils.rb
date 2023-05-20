@@ -24,17 +24,23 @@ module Leto
     return obj if IMMUTABLE_CLASSES.include?(obj.class) || !duplicable?(obj) ||
                   (!include_modules && obj.is_a?(Module))
 
-    trace(obj, max_depth: 1).each_with_object(obj.dup) do |(el, path), copy|
+    copy = obj.dup
+
+    trace(obj, max_depth: 1).each do |el, path|
       method, *args = path.steps[0]
       case method
       when :instance_variable_get
         copy.instance_variable_set(*args, deep_dup(el, include_modules: include_modules))
       when :[]
         copy[*args] = deep_dup(el, include_modules: include_modules)
+      when :send # Data
+        copy = copy.with(args[0] => deep_dup(el, include_modules: include_modules))
       when :begin
         return Range.new(deep_dup(obj.begin), deep_dup(obj.end), obj.exclude_end?)
       end
     end
+
+    copy
   end
 
   def self.shared_mutable_state?(obj1, obj2)

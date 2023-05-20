@@ -40,26 +40,38 @@ RSpec.describe Leto do
     expect(copy.class).to equal klass
     expect(klass.class_variable_get(:@@cv)).to equal orig_cv
 
-    expect_dup = ->(proc) do
-      expect(proc.call(copy)).to eq(proc.call(orig))
-      expect(proc.call(copy)).not_to equal(proc.call(orig))
+    def expect_dup(orig, copy)
+      orig_subobj = yield(orig)
+      copy_subobj = yield(copy)
+      expect(copy_subobj).to     eq    orig_subobj
+      expect(copy_subobj).not_to equal orig_subobj
     end
 
-    expect_dup.call(->(orig_or_copy) { orig_or_copy })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[0] })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1] })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0] })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][0] })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1] })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1].begin })
-    expect_dup.call(->(orig_or_copy) { orig_or_copy.foo[1].values[0][1].end })
+    expect_dup(orig, copy) { |obj| obj }
+    expect_dup(orig, copy) { |obj| obj.foo }
+    expect_dup(orig, copy) { |obj| obj.foo[0] }
+    expect_dup(orig, copy) { |obj| obj.foo[1] }
+    expect_dup(orig, copy) { |obj| obj.foo[1].values[0] }
+    expect_dup(orig, copy) { |obj| obj.foo[1].values[0][0] }
+    expect_dup(orig, copy) { |obj| obj.foo[1].values[0][1] }
+    expect_dup(orig, copy) { |obj| obj.foo[1].values[0][1].begin }
+    expect_dup(orig, copy) { |obj| obj.foo[1].values[0][1].end }
 
     recursive = []
     recursive << recursive
     copy = Leto.deep_dup(recursive)
     expect(copy).to eq recursive
     expect(copy).not_to equal recursive
+
+    if defined?(Data)
+      model = Data.define(:foo, :bar)
+      record_orig = model.new('bazz', ['qux'])
+      record_copy = Leto.deep_dup(record_orig)
+      expect_dup(record_orig, record_copy) { |obj| obj }
+      expect_dup(record_orig, record_copy) { |obj| obj.foo }
+      expect_dup(record_orig, record_copy) { |obj| obj.bar }
+      expect_dup(record_orig, record_copy) { |obj| obj.bar[0] }
+    end
   end
 
   specify '::shared_mutable_state?' do

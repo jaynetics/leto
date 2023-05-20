@@ -12,61 +12,75 @@ module Leto
     call(obj, max_depth: max_depth, path: path || Path.new(start: obj), &block)
   end
 
-  def self.traverse(obj, path, depth, max_depth, seen, block)
-    return if seen[obj] || max_depth&.<(depth)
+  instance_eval <<-RUBY, __FILE__, __LINE__ + 1
 
-    seen[obj] = true
-    depth += 1
+  private
 
-    path ? block.call(obj, path) : block.call(obj)
+    def traverse(obj, path, depth, max_depth, seen, block)
+      return if seen[obj] || max_depth&.<(depth)
 
-    obj.instance_variables.each do |ivar_name|
-      traverse(
-        obj.instance_variable_get(ivar_name),
-        path&.+([[:instance_variable_get, ivar_name]]),
-        depth, max_depth, seen, block
-      )
-    end
+      seen[obj] = true
+      depth += 1
 
-    case obj
-    when Hash
-      obj.keys.each_with_index do |k, i|
-        traverse(k, path&.+([[:keys], [:[], i]]), depth, max_depth, seen, block)
-        traverse(obj[k], path&.+([[:[], k]]), depth, max_depth, seen, block)
-      end
-    when Module
-      obj.class_variables.each do |cvar_name|
+      path ? block.call(obj, path) : block.call(obj)
+
+      obj.instance_variables.each do |ivar_name|
         traverse(
-          obj.class_variable_get(cvar_name),
-          path&.+([[:class_variable_get, cvar_name]]),
+          obj.instance_variable_get(ivar_name),
+          path&.+([[:instance_variable_get, ivar_name]]),
           depth, max_depth, seen, block
         )
       end
-      obj.constants.each do |const_name|
-        traverse(
-          obj.const_get(const_name),
-          path&.+([[:const_get, const_name]]),
-          depth, max_depth, seen, block
-        )
-      end
-    when Range
-      traverse(obj.begin, path&.+([[:begin]]), depth, max_depth, seen, block)
-      traverse(obj.end,   path&.+([[:end]]), depth, max_depth, seen, block)
-    when Struct
-      obj.members.each do |member|
-        traverse(obj[member], path&.+([[:[], member]]), depth, max_depth, seen, block)
-      end
-    when Enumerable
-      obj.each_with_index do |el, idx|
-        traverse(el, path&.+([[:[], idx]]), depth, max_depth, seen, block)
+
+      case obj
+      when Hash
+        obj.keys.each_with_index do |k, i|
+          traverse(k, path&.+([[:keys], [:[], i]]), depth, max_depth, seen, block)
+          traverse(obj[k], path&.+([[:[], k]]), depth, max_depth, seen, block)
+        end
+      when Module
+        obj.class_variables.each do |cvar_name|
+          traverse(
+            obj.class_variable_get(cvar_name),
+            path&.+([[:class_variable_get, cvar_name]]),
+            depth, max_depth, seen, block
+          )
+        end
+        obj.constants.each do |const_name|
+          traverse(
+            obj.const_get(const_name),
+            path&.+([[:const_get, const_name]]),
+            depth, max_depth, seen, block
+          )
+        end
+      when Range
+        traverse(obj.begin, path&.+([[:begin]]), depth, max_depth, seen, block)
+        traverse(obj.end,   path&.+([[:end]]), depth, max_depth, seen, block)
+      when Struct
+        obj.members.each do |member|
+          traverse(obj[member], path&.+([[:[], member]]), depth, max_depth, seen, block)
+        end
+      when Enumerable
+        obj.each_with_index do |el, idx|
+          traverse(el, path&.+([[:[], idx]]), depth, max_depth, seen, block)
+        end
+      #{
+        defined?(Data) && Data.respond_to?(:define) && <<-DATA_FEATURE_RUBY
+        when Data
+          obj.members.each do |member|
+            traverse(
+              obj.send(member),
+              path&.+([[:send, member]]),
+              depth, max_depth, seen, block
+            )
+          end
+        DATA_FEATURE_RUBY
+      }
       end
     end
-  end
-  private_class_method :traverse
 
-  # ignore leaky constants in old rubies
-  class_eval <<-RUBY, __FILE__, __LINE__ + 1
-    def self.build_seen_hash
+    # ignore leaky constants in old rubies
+    def build_seen_hash
       hash = {}
       hash.compare_by_identity
       #{'hash[::Etc::Group] = true' if defined?(::Etc::Group)}

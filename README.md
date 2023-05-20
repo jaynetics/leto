@@ -13,6 +13,7 @@ Takes an object and recursively yields:
 - Hash keys and values
 - Enumerable members
 - Struct members
+- [Data](https://docs.ruby-lang.org/en/3.2/Data.html) members
 - Range begins and ends
 
 This makes stuff like deep-freezing fairly easy to implement:

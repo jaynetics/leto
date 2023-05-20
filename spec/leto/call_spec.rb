@@ -35,6 +35,12 @@ RSpec.describe Leto do
       obj.instance_variable_set(:@obj, obj)
       expect(Leto.call(obj).to_a).to eq [obj]
     end
+
+    it 'supports Data', if: defined?(Data) && Data.respond_to?(:define) do
+      model = Data.define(:foo, :bar)
+      record = model.new(23, [42])
+      expect(Leto.call(record).to_a).to eq [record, 23, [42], 42]
+    end
   end
 
   describe '::trace' do

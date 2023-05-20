@@ -29,3 +29,6 @@ Style/FetchEnvVar:
 
 Style/FrozenStringLiteralComment:
   Enabled: false
+
+Style/SymbolProc:
+  Enabled: false
