@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-03
+
 ### Added
 
 - support for varargs in `::shared_mutable_state?`
