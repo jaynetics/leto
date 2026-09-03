@@ -10,8 +10,7 @@ module Leto
   def self.deep_print(obj, print_method: :inspect, indent: 4, show_path: true)
     trace(obj) do |el, path|
       puts "#{' ' * path.count * indent}#{el.send(print_method)}" \
-           "#{"  @ #{path.inspect}" if show_path}" \
-           [0..78]
+           "#{"  @ #{path.inspect}" if show_path}"[0..78]
     end
     nil
   end
@@ -43,8 +42,10 @@ module Leto
     copy
   end
 
-  def self.shared_mutable_state?(obj1, obj2)
-    each_shared_object(obj1, obj2, filter: method(:mutable?)).any?
+  def self.shared_mutable_state?(*objects)
+    objects.combination(2).any? do |obj1, obj2|
+      each_shared_object(obj1, obj2, filter: method(:mutable?)).any?
+    end
   end
 
   # returns [[shared_object, path1, path2], ...], e.g.:
@@ -87,7 +88,7 @@ module Leto
     if defined?(Integer)
       Integer
     else
-      Fixnum # rubocop:disable Lint/UnifiedInteger for Ruby < 2.4
+      Fixnum # rubocop:disable Lint/UnifiedInteger -- for Ruby < 2.4
     end,
     NilClass,
     Symbol,

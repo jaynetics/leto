@@ -79,13 +79,16 @@ RSpec.describe Leto do
     obj2 = struct_class.new(:foobar)
     obj1.instance_variable_set(:@immutable, :thingy)
     expect(Leto.shared_mutable_state?(obj1, obj2)).to eq false
+    expect(Leto.shared_mutable_state?('X', obj1, 'Y', obj2, 'Z')).to eq false
 
     string = 'stringy'.dup
     obj1.instance_variable_set(:@mutable1, string)
     expect(Leto.shared_mutable_state?(obj1, obj2)).to eq false
+    expect(Leto.shared_mutable_state?('X', obj1, 'Y', obj2, 'Z')).to eq false
 
     obj2.instance_variable_set(:@mutable2, string)
     expect(Leto.shared_mutable_state?(obj1, obj2)).to eq true
+    expect(Leto.shared_mutable_state?('X', obj1, 'Y', obj2, 'Z')).to eq true
   end
 
   specify '::shared_mutables' do
