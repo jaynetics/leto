@@ -37,22 +37,29 @@ Basic example:
 ```ruby
 object = [{ a: ['b', 'c'..'d'] }]
 
-Leto.call(object) { |el| p el }
+Leto.call(object) { |el| puts "#{el.class}: #{el}" }
 # prints:
 #
-# [{:a=>["b", ["c".."d"]]}]
-# {:a=>["b", ["c".."d"]]}
-# :a
-# ["b", ["c".."d"]]
-# "b"
-# "c".."d"
-# "c"
-# "d"
+# Array: [{a: ["b", "c".."d"]}]
+# Hash: {a: ["b", "c".."d"]}
+# Symbol: a
+# Array: ["b", "c".."d"]
+# String: b
+# Range: c..d
+# String: c
+# String: d
+```
 
+Calls without a block return an `Enumerator`:
+
+```ruby
 Leto.call(object).to_a
 # => [[{:a=>["b", ["c".."d"]]}], {:a=>["b", ["c".."d"]]}, :a, ...]
+```
 
-# Leto::trace behaves like ::call, but also yields each (sub-)object's path:
+`Leto.trace` behaves like `.call`, but also yields each (sub-)object's `Path`:
+
+```ruby
 Leto.trace(object) { |el, path| puts "#{el.inspect.ljust(23)} @#{path}" }
 # prints:
 #
@@ -64,11 +71,19 @@ Leto.trace(object) { |el, path| puts "#{el.inspect.ljust(23)} @#{path}" }
 # "c".."d"                @#<Leto::Path [{:a=>["b", "c".."d"]}][0][:a][1]>
 # "c"                     @#<Leto::Path [{:a=>["b", "c".."d"]}][0][:a][1].begin>
 # "d"                     @#<Leto::Path [{:a=>["b", "c".."d"]}][0][:a][1].end>
+```
 
-# paths can be looked up with Leto::Path#resolve or Leto::dig
+Paths can be looked up with `Leto::Path#resolve` or `Leto.dig`:
+
+```ruby
 path = Leto.trace(object).map { |_el, path| path }.last # => #<Leto::Path...>
 path.resolve # => "d"
 Leto.dig(object, path) # => "d"
+```
+
+Arrays of Arrays, where the latter ones contain method names and arguments, are valid paths:
+
+```ruby
 Leto.dig(object, [[:[], 0], [:[], :a], [:[], 1], [:end]]) # => "d"
 ```
 
