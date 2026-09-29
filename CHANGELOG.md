@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-29
+
+### Added
+
+- support for Ruby 4's native `Set` class
+
 ## [2.2.0] - 2026-09-03
 
 ### Added
