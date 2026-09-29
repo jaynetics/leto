@@ -60,12 +60,19 @@ module Leto
         obj.members.each do |member|
           traverse(obj[member], path&.+([[:[], member]]), depth, max_depth, seen, block)
         end
-      when Enumerable
-        obj.each_with_index do |el, idx|
-          traverse(el, path&.+([[:[], idx]]), depth, max_depth, seen, block)
-        end
       #{
-        defined?(Data) && Data.respond_to?(:define) && <<-DATA_FEATURE_RUBY
+        set_feature? && <<-SET_FEATURE_RUBY
+        when Set
+          obj.each_with_index do |el, idx|
+            traverse(
+              el, path&.+([[:to_a], [:[], idx]]),
+              depth, max_depth, seen, block
+            )
+          end
+        SET_FEATURE_RUBY
+      }
+      #{
+        data_feature? && <<-DATA_FEATURE_RUBY
         when Data
           obj.members.each do |member|
             traverse(
@@ -76,6 +83,10 @@ module Leto
           end
         DATA_FEATURE_RUBY
       }
+      when Enumerable
+        obj.each_with_index do |el, idx|
+          traverse(el, path&.+([[:[], idx]]), depth, max_depth, seen, block)
+        end
       end
     end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'leto/features'
 require_relative 'leto/call'
 require_relative 'leto/dig'
 require_relative 'leto/path'

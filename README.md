@@ -12,9 +12,10 @@ Takes an object and recursively yields:
 - instance variables, class variables, constants
 - Hash keys and values
 - Enumerable members
+- Range begins and ends
 - Struct members
 - [Data](https://docs.ruby-lang.org/en/3.2/Data.html) members
-- Range begins and ends
+- Set members (for [native Sets on Ruby >= 4.0](https://bugs.ruby-lang.org/issues/21216))
 
 This makes stuff like deep-freezing fairly easy to implement:
 

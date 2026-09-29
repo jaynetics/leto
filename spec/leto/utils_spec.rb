@@ -60,10 +60,9 @@ RSpec.describe Leto do
     recursive = []
     recursive << recursive
     copy = Leto.deep_dup(recursive)
-    expect(copy).to eq recursive
-    expect(copy).not_to equal recursive
+    expect_dup(copy, recursive) { |obj| obj }
 
-    if defined?(Data) && Data.respond_to?(:define)
+    if Leto.data_feature?
       model = Data.define(:foo, :bar)
       record_orig = model.new('bazz', ['qux'])
       record_copy = Leto.deep_dup(record_orig)
@@ -71,6 +70,22 @@ RSpec.describe Leto do
       expect_dup(record_orig, record_copy) { |obj| obj.foo }
       expect_dup(record_orig, record_copy) { |obj| obj.bar }
       expect_dup(record_orig, record_copy) { |obj| obj.bar[0] }
+    end
+
+    if Leto.set_feature?
+      # Note that string members are frozen via a call to rb_hash_key_str
+      # when added to a set, and thus can't be (and don't need to be) dupped.
+      # Hence why this test uses a non-string set member.
+      set_orig = Set[orig]
+      set_copy = Leto.deep_dup(set_orig)
+      expect_dup(set_orig, set_copy) { |obj| obj }
+      expect_dup(set_orig, set_copy) { |obj| obj.first }
+
+      set_sublass = Class.new(Set)
+      sub_orig = set_sublass[orig]
+      sub_copy = Leto.deep_dup(sub_orig)
+      expect_dup(sub_orig, sub_copy) { |obj| obj }
+      expect_dup(sub_orig, sub_copy) { |obj| obj.first }
     end
   end
 

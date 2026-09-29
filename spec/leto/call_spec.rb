@@ -36,10 +36,16 @@ RSpec.describe Leto do
       expect(Leto.call(obj).to_a).to eq [obj]
     end
 
-    it 'supports Data', if: defined?(Data) && Data.respond_to?(:define) do
+    it 'supports Data', if: Leto.data_feature? do
       model = Data.define(:foo, :bar)
       record = model.new(23, [42])
       expect(Leto.call(record).to_a).to eq [record, 23, [42], 42]
+    end
+
+    it 'supports Set', if: Leto.set_feature? do
+      set = Set[['nested'], Set[42]]
+      expect(Leto.call(set).to_a).to eq [set, ['nested'], 'nested', Set[42], 42]
+      Leto.trace(set) { |el, path| expect(path.resolve).to equal el }
     end
   end
 

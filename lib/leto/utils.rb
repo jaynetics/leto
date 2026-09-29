@@ -34,8 +34,14 @@ module Leto
         copy[*args] = deep_dup(el, include_modules: include_modules)
       when :send # Data
         copy = copy.with(args[0] => deep_dup(el, include_modules: include_modules))
+      when :to_a # Set
+        copy = (copy - [el]) + [deep_dup(el, include_modules: include_modules)]
       when :begin
-        return Range.new(deep_dup(obj.begin), deep_dup(obj.end), obj.exclude_end?)
+        return Range.new(
+          deep_dup(obj.begin, include_modules: include_modules),
+          deep_dup(obj.end, include_modules: include_modules),
+          obj.exclude_end?,
+        )
       end
     end
 
