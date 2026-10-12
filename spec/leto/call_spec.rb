@@ -47,6 +47,12 @@ RSpec.describe Leto do
       expect(Leto.call(set).to_a).to eq [set, ['nested'], 'nested', Set[42], 42]
       Leto.trace(set) { |el, path| expect(path.resolve).to equal el }
     end
+
+    require 'ostruct'
+    it 'supports OpenStruct' do
+      os = OpenStruct.new(foo: 'bar') # rubocop:disable Style/OpenStructUse
+      expect(Leto.call(os).to_a).to eq [os, { foo: 'bar' }, :foo, 'bar']
+    end
   end
 
   describe '::trace' do
