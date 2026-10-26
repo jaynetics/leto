@@ -38,6 +38,10 @@ module Leto
           traverse(k, path&.+([[:keys], [:[], i]]), depth, max_depth, seen, block)
           traverse(obj[k], path&.+([[:[], k]]), depth, max_depth, seen, block)
         end
+        obj.default.nil? ||
+          traverse(obj.default, path&.+([[:default]]), depth, max_depth, seen, block)
+        obj.default_proc.nil? ||
+          traverse(obj.default_proc, path&.+([[:default_proc]]), depth, max_depth, seen, block)
       when Module
         obj.class_variables.each do |cvar_name|
           traverse(

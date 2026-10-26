@@ -36,10 +36,23 @@ RSpec.describe Leto do
       expect(Leto.call(obj).to_a).to eq [obj]
     end
 
+    it 'supports Hash#default' do
+      hash = Hash.new(:my_default)
+      expect(Leto.call(hash).to_a).to eq [hash, :my_default]
+      Leto.trace(hash) { |el, path| expect(path.resolve).to equal el }
+    end
+
+    it 'supports Hash#default_proc' do
+      hash = Hash.new { :my_default }
+      expect(Leto.call(hash).to_a).to match [hash, instance_of(Proc)]
+      Leto.trace(hash) { |el, path| expect(path.resolve).to equal el }
+    end
+
     it 'supports Data', if: Leto.data_feature? do
       model = Data.define(:foo, :bar)
       record = model.new(23, [42])
       expect(Leto.call(record).to_a).to eq [record, 23, [42], 42]
+      Leto.trace(record) { |el, path| expect(path.resolve).to equal el }
     end
 
     it 'supports Set', if: Leto.set_feature? do
@@ -52,6 +65,7 @@ RSpec.describe Leto do
     it 'supports OpenStruct' do
       os = OpenStruct.new(foo: 'bar') # rubocop:disable Style/OpenStructUse
       expect(Leto.call(os).to_a).to eq [os, { foo: 'bar' }, :foo, 'bar']
+      Leto.trace(os) { |el, path| expect(path.resolve).to equal el }
     end
 
     it 'supports Complex' do

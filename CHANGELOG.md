@@ -3,6 +3,7 @@
 ### Added
 
 - support for `Complex` and `Rational` objects
+- support for `Hash#default` and `Hash#default_proc`
 
 ## [2.3.0] - 2026-09-29
 

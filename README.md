@@ -10,7 +10,7 @@ Takes an object and recursively yields:
 
 - the given object
 - instance variables, class variables, constants
-- `Hash` keys and values
+- `Hash` keys, values, default values, and default_procs
 - `Enumerable` members
 - `Range` begins and ends
 - `Struct` and `OpenStruct` members
