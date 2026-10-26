@@ -79,6 +79,110 @@ RSpec.describe Leto do
       expect(Leto.call(rational).to_a).to eq [rational, 1, 2]
       Leto.trace(rational) { |el, path| expect(path.resolve).to equal el }
     end
+
+    it 'supports custom Time zones', if: RUBY_VERSION.to_f >= 2.6 do
+      timezone_class = Class.new do
+        def local_to_utc(time); time end
+        def utc_to_local(time); time end
+      end
+      zone = timezone_class.new
+      zone.instance_variable_set(:@name, 'custom')
+      time = Time.new(2020, 1, 1, 0, 0, 0, zone)
+      expect(Leto.call(time).to_a).to eq [time, zone, 'custom']
+      Leto.trace(time) { |el, path| expect(path.resolve).to equal el }
+    end
+
+    it 'supports Time without a zone' do
+      time = Time.new(2020, 1, 1, 0, 0, 0, '+02:00')
+      expect(Leto.call(time).to_a).to eq [time]
+    end
+
+    describe 'Exception support' do
+      it 'supports Exception' do
+        exception = RuntimeError.new('message')
+        exception.set_backtrace(['trace'])
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, exception.backtrace, 'trace'
+        ]
+        Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports exception causes and backtrace locations' do
+        begin
+          raise 'cause'
+        rescue RuntimeError
+          raise 'outer'
+        end
+      rescue RuntimeError => e
+        objects = Leto.call(e).to_a
+        expect(objects).to include(e.cause)
+        expect(objects).to include(*e.backtrace_locations)
+        Leto.trace(e) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports NameError' do
+        exception = NameError.new('message', :name, receiver: ['receiver'])
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, :name, exception.receiver, 'receiver'
+        ]
+        Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports NoMethodError' do
+        exception = NoMethodError.new('message', :name, ['arg'], receiver: [])
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, :name, exception.receiver,
+          exception.args, 'arg'
+        ]
+        Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports KeyError' do
+        exception = KeyError.new('message', key: ['key'], receiver: {})
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, exception.receiver, exception.key, 'key'
+        ]
+        Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports UncaughtThrowError' do
+        exception = UncaughtThrowError.new(:tag, ['value'], 'message')
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, :tag, exception.value, 'value'
+        ]
+        Leto.trace(exception) do |el, path|
+          # UncaughtThrowError formats a new message string on every call.
+          if path.steps == [[:message]]
+            expect(path.resolve).to eq el
+          else
+            expect(path.resolve).to equal el
+          end
+        end
+      end
+
+      it 'supports NoMatchingPatternKeyError', if: defined?(NoMatchingPatternKeyError) do
+        exception = NoMatchingPatternKeyError.new('message', matchee: [], key: :key)
+        expect(Leto.call(exception).to_a).to eq [
+          exception, exception.message, :key, exception.matchee
+        ]
+        Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+      end
+
+      it 'supports exceptions without optional fields' do
+        [Exception, NameError, NoMethodError, KeyError].each do |klass|
+          exception = klass.new('message')
+          expect(Leto.call(exception).to_a).to eq [exception, exception.message]
+        end
+      end
+
+      it 'supports exception status, signals, and error numbers' do
+        [SystemExit.new(2, 'exit'), SignalException.new('TERM'), Errno::ENOENT.new].each do |exception|
+          method = %i[status signo errno].find { |name| exception.respond_to?(name) }
+          expect(Leto.call(exception).to_a).to include(exception.send(method))
+          Leto.trace(exception) { |el, path| expect(path.resolve).to equal el }
+        end
+      end
+    end
   end
 
   describe '::trace' do

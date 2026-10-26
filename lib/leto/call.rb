@@ -97,6 +97,25 @@ module Leto
       when Rational
         traverse(obj.numerator,   path&.+([[:numerator]]), depth, max_depth, seen, block)
         traverse(obj.denominator, path&.+([[:denominator]]), depth, max_depth, seen, block)
+      when Exception
+        %i[
+          message backtrace backtrace_locations cause name receiver args key
+          matchee result exit_value reason tag value path status signo errno
+        ].each do |attr|
+          attr = :original_message if attr == :message && obj.respond_to?(:original_message)
+          begin
+            value = obj.send(attr)
+          rescue ArgumentError
+            # Some exceptions have no receiver or key.
+            raise unless %i[receiver key].include?(attr)
+          rescue NoMethodError # ignore
+          end
+          value.nil? ||
+            traverse(value, path&.+([[attr]]), depth, max_depth, seen, block)
+        end
+      when Time
+        obj.zone.nil? ||
+          traverse(obj.zone, path&.+([[:zone]]), depth, max_depth, seen, block)
       end
     end
 
