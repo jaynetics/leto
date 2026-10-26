@@ -11,6 +11,15 @@ RSpec.describe Leto do
     expect(obj['a'][1]).to be_frozen
     expect(obj['a'][1].begin).to be_frozen
     expect(obj['a'][1].end).to be_frozen
+
+    # deep freezing of Complex with custom numeric parts
+    dummy_numeric = Class.new(Numeric) { def <=>(_other); 0 end }
+    complex = Complex(dummy_numeric.new, dummy_numeric.new)
+    Leto.deep_freeze(complex)
+    expect(complex.real).to be_a dummy_numeric
+    expect(complex.real).to be_frozen
+    expect(complex.imaginary).to be_a dummy_numeric
+    expect(complex.imaginary).to be_frozen
   end
 
   specify '::deep_print' do

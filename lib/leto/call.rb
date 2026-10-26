@@ -87,6 +87,12 @@ module Leto
         obj.each_with_index do |el, idx|
           traverse(el, path&.+([[:[], idx]]), depth, max_depth, seen, block)
         end
+      when Complex
+        traverse(obj.real,      path&.+([[:real]]), depth, max_depth, seen, block)
+        traverse(obj.imaginary, path&.+([[:imaginary]]), depth, max_depth, seen, block)
+      when Rational
+        traverse(obj.numerator,   path&.+([[:numerator]]), depth, max_depth, seen, block)
+        traverse(obj.denominator, path&.+([[:denominator]]), depth, max_depth, seen, block)
       end
     end
 

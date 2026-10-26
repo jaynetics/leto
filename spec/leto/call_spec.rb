@@ -53,6 +53,18 @@ RSpec.describe Leto do
       os = OpenStruct.new(foo: 'bar') # rubocop:disable Style/OpenStructUse
       expect(Leto.call(os).to_a).to eq [os, { foo: 'bar' }, :foo, 'bar']
     end
+
+    it 'supports Complex' do
+      complex = Complex(1, 2)
+      expect(Leto.call(complex).to_a).to eq [complex, 1, 2]
+      Leto.trace(complex) { |el, path| expect(path.resolve).to equal el }
+    end
+
+    it 'supports Rational' do
+      rational = Rational(1, 2)
+      expect(Leto.call(rational).to_a).to eq [rational, 1, 2]
+      Leto.trace(rational) { |el, path| expect(path.resolve).to equal el }
+    end
   end
 
   describe '::trace' do

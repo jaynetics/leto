@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- support for `Complex` and `Rational` objects
+
 ## [2.3.0] - 2026-09-29
 
 ### Added

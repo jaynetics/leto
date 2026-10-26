@@ -10,12 +10,14 @@ Takes an object and recursively yields:
 
 - the given object
 - instance variables, class variables, constants
-- Hash keys and values
-- Enumerable members
-- Range begins and ends
-- Struct and OpenStruct members
-- [Data](https://docs.ruby-lang.org/en/3.2/Data.html) members
-- Set members (for [native Sets on Ruby >= 4.0](https://bugs.ruby-lang.org/issues/21216))
+- `Hash` keys and values
+- `Enumerable` members
+- `Range` begins and ends
+- `Struct` and `OpenStruct` members
+- [`Data`](https://docs.ruby-lang.org/en/3.2/Data.html) members
+- `Set` members (for [native Sets on Ruby >= 4.0](https://bugs.ruby-lang.org/issues/21216))
+- `Complex`' objects real and imaginary parts
+- `Rational`' numerator and denominator
 
 This makes stuff like deep-freezing fairly easy to implement:
 
